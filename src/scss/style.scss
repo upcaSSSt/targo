@@ -1,0 +1,73 @@
+@use "sass:math";
+
+@import "mixins.scss";
+
+@import url("https://fonts.googleapis.com/css?family=Montserrat:400,500,600,700&display=swap");
+
+$fontFamily: "Montserrat";
+$fontSize: rem(16);
+
+$mainColor: #000;
+
+$minWidth: 320;
+$maxWidth: 1920;
+$maxWidthContainer: 1200;
+$containerPadding: 30;
+
+$responsiveType: 1;
+
+$containerWidth: $maxWidthContainer + $containerPadding;
+
+$pc: em($containerWidth);
+$tablet: em(991.98);
+$mobile: em(767.98);
+$mobileSmall: em(479.98);
+
+body {
+  color: $mainColor;
+  font-family: $fontFamily;
+  font-size: $fontSize;
+  font-weight: 400;
+  &._lock {
+    overflow: hidden;
+    touch-action: none;
+  }
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  overflow: hidden;
+  > main {
+      flex: 1 1 auto;
+  }
+  > * {
+      min-width: 0;
+  }
+}
+
+[class *= "__container"] {
+  max-width: rem($maxWidthContainer);
+  box-sizing: content-box;
+  margin: 0 auto;
+  padding: 0 rem(math.div($containerPadding, 2));
+}
+
+@if ($responsiveType == 1) {
+  [class *= "__container"] {
+  }
+}
+@else {
+  [class *= "__container"] {
+    @media (max-width: $pc) {
+        max-width: rem(970);
+    }
+    @media (max-width: $tablet) {
+        max-width: rem(750);
+    }
+    @media (max-width: $mobile) {
+      max-width: none;
+    }
+  }
+}
