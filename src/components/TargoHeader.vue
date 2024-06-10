@@ -1,9 +1,12 @@
 <template>
   <section class="header">
     <div class="header__container">
-      <div class="header__logo">
+      <RouterLink
+        to="/"
+        class="header__logo"
+      >
         Targo
-      </div>
+      </RouterLink>
       <div class="header__themes themes">
         <button
           class="themes__button _selected"
@@ -14,7 +17,7 @@
           @click="switchTheme"
         />
         <button
-          class="themes__button themes_banana" 
+          class="themes__button themes_banana"
           @click="switchTheme"
         />
         <button
@@ -26,12 +29,32 @@
           @click="switchTheme"
         />
       </div>
-      <BtnAdd />
-      <div class="header__basket">
-        <img
-          src="../../public/basket.svg"
-          alt="Basket"
+      <BtnAdd v-show="$route.meta.showAddBtn" />
+      <div
+        v-show="$route.meta.showBasketBtn"
+        class="header__buttons"
+      >
+        <div class="header__admin">
+          <RouterLink to="/admin">
+            <img
+              src="../../public/admin.svg"
+              alt="Admin"
+            >
+          </RouterLink>
+        </div>
+        <div
+          class="header__basket"
         >
+          <RouterLink to="/basket">
+            <img
+              src="../../public/basket.svg"
+              alt="Basket"
+            >
+            <span>
+              {{ counter }}
+            </span>
+          </RouterLink>
+        </div>
       </div>
     </div>
   </section>
@@ -40,22 +63,24 @@
 <script>
 import { inject } from 'vue';
 import BtnAdd from './BtnAdd.vue';
+
 export default {
   name: 'TargoHeader',
   components: {
     BtnAdd,
   },
   setup() {
+    const counter = inject('counter');
     const theme = inject('theme');
-    return { theme };
+    return { counter, theme };
   },
   methods: {
     switchTheme(e) {
       document.querySelector('.themes__button._selected').classList.remove('_selected');
       this.theme = window.getComputedStyle(e.target).backgroundColor;
       e.target.classList.add('_selected');
-    }
-  }
+    },
+  },
 };
 </script>
 
@@ -87,8 +112,22 @@ export default {
     display: flex;
     gap: em(10);
   }
-  &__basket img {
-
+  &__buttons {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  &__basket {
+    position: relative;
+    & span {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      font-size: rem(14);
+      border-radius: 50%;
+      padding: 5px;
+      background-color: orange;
+    }
   }
 }
 .themes {

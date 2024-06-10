@@ -8,12 +8,13 @@
 
 <script>
 import { inject } from 'vue';
+
 export default {
   name: 'TargoFooter',
   setup() {
     const theme = inject('theme');
     return { theme };
-  }
+  },
 };
 </script>
 

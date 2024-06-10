@@ -1,52 +1,51 @@
 <template>
-  <FormAdd />
-  <OrdersPlot ref="ordersPlot" />
   <TargoHeader />
   <main class="main">
-    <div class="main__container">
-      <CardsContainer
-        @card-click="cardClick"
-      />
-    </div>
+    <RouterView />
   </main>
   <TargoFooter />
 </template>
 
 <script>
 import { ref, provide } from 'vue';
-import FormAdd from './components/FormAdd.vue';
-import OrdersPlot from './components/OrdersPlot.vue';
 import TargoHeader from './components/TargoHeader.vue';
-import CardsContainer from './components/CardsContainer.vue';
 import TargoFooter from './components/TargoFooter.vue';
 
 export default {
   name: 'App',
   components: {
-    FormAdd,
-    OrdersPlot,
     TargoHeader,
-    CardsContainer,
     TargoFooter,
   },
   setup() {
-    const theme = ref('rgb(245, 245, 220)');
+    const counter = ref(0);
     const showAddForm = ref(false);
+    const theme = ref('rgb(245, 245, 220)');
     const products = ref([]);
+    const editedProducts = ref({});
+    const basket = ref([]);
     const themeAlpha = () => `rgba${theme.value.slice(3, -1)}, 0.5)`;
     const toggleForm = () => showAddForm.value = !showAddForm.value;
 
-    provide('theme', theme);
+    provide('counter', counter);
     provide('showAddForm', showAddForm);
+    provide('theme', theme);
     provide('products', products);
+    provide('editedProducts', editedProducts);
+    provide('basket', basket);
     provide('themeAlpha', themeAlpha);
     provide('toggleForm', toggleForm);
     return { theme, products, themeAlpha };
   },
-  methods: {
-    cardClick(orders) {
-      this.$refs.ordersPlot.cardClick(orders);
-    }
+  mounted() {
+    fetch('http://localhost:3000/').then((response) => response.json()).then((data) => {
+      for (let i = 0; i < data.length; i++) {
+        data[i].id = i;
+        for (const order of data[i].orders)
+          order.date = new Date(order.date);
+      }
+      this.products = data;
+    });
   },
 };
 </script>
@@ -72,9 +71,15 @@ export default {
   border-radius: 15px;
   padding: 10px 15px;
   background-color: v-bind(theme);
+  &_red {
+    background-color: #ee4b2b !important;
+  }
 }
 
 .main {
   padding: 50px 0;
+  & >* {
+    padding: 0 0 30px;
+  }
 }
 </style>

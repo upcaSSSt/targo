@@ -39,7 +39,7 @@
             class="add__input"
             name="price"
             type="number"
-            min="1"
+            min="0"
             required
           >
         </label>
@@ -65,14 +65,15 @@
 
 <script>
 import { inject } from 'vue';
+
 export default {
   name: 'FormAdd',
   setup() {
+    const showAddForm = inject('showAddForm');
     const theme = inject('theme');
     const products = inject('products');
-    const showAddForm = inject('showAddForm');
     const themeAlpha = inject('themeAlpha');
-    return { theme, products, showAddForm, themeAlpha };
+    return { showAddForm, theme, products, themeAlpha };
   },
   methods: {
     async addProduct(e) {
@@ -80,33 +81,28 @@ export default {
       const form = document.querySelector('.form-add__add');
       const fd = new FormData(form);
       form.reset();
-      
+
       if (!fd.get('name'))
         fd.set('name', 'Имя отсутствует...');
       if (!fd.get('description'))
         fd.set('description', 'Описание отсутствует...');
 
-      const res = await fetch('http://localhost:3000/', {
+      const res = await fetch('http://localhost:3000/add', {
         method: 'post',
         body: fd,
       });
       const now = new Date();
       now.setHours(now.getTimezoneOffset() / -60, 0, 0, 0);
-      try {
-        setTimeout(() => {
-          this.products.push({
-            imgName: fd.get('img').name,
-            name: fd.get('name'),
-            price: +fd.get('price'),
-            description: fd.get('description'),
-            orders: [{ date: now, n: 1 }],
-            id: new Date().getTime(),
-          });
-        }, 2000);
-      }
-      catch {
-        alert('Не удалось добавить товар. Попробуйте снова');
-      }
+      setTimeout(() => {
+        this.products.push({
+          imgName: fd.get('img').name,
+          name: fd.get('name'),
+          price: +fd.get('price'),
+          description: fd.get('description'),
+          orders: [],
+          id: new Date().getTime(),
+        });
+      }, 2000);
     },
   },
 };

@@ -61,8 +61,8 @@ export default {
         text: 'Количество заказов',
         font: { color: '#000' },
       },
-      xaxis: { title: { text: 'Даты', font: { color: '#000' }}, fixedrange: true },
-      yaxis: { title: { text: 'Количество', font: { color: '#000' }}, dtick: 1, fixedrange: true },
+      xaxis: { title: { text: 'Даты', font: { color: '#000' } }, fixedrange: true },
+      yaxis: { title: { text: 'Количество', font: { color: '#000' } }, dtick: 1, fixedrange: true },
     };
 
     Plotly.newPlot(this.plotContent, [{}], layout, { displayModeBar: false, responsive: true });
@@ -70,23 +70,27 @@ export default {
   methods: {
     cardClick(orders) {
       this.minI = 0;
-      this.maxI = orders.length - 1;
-      this.minInput.value = orders[0].date.toISOString().slice(0, -14);
-      this.maxInput.value = orders.at(-1).date.toISOString().slice(0, -14);
-      this.minInput.min = orders[0].date.toISOString().slice(0, -14);
+      this.maxI = orders.length;
+
+      if (orders.length > 0) {
+        this.minInput.value = orders[0].date.toISOString().slice(0, -14);
+        this.maxInput.value = orders.at(-1).date.toISOString().slice(0, -14);
+        this.minInput.min = orders[0].date.toISOString().slice(0, -14);
+        this.maxInput.max = orders.at(-1).date.toISOString().slice(0, -14);
+      }
+      else {
+        const now = new Date();
+        now.setHours(now.getTimezoneOffset() / -60, 0, 0, 0);
+        this.minInput.value = now.toISOString().slice(0, -14);
+        this.maxInput.value = now.toISOString().slice(0, -14);
+        this.minInput.min = now.toISOString().slice(0, -14);
+        this.maxInput.max = now.toISOString().slice(0, -14);
+      }
       this.minInput.max = this.maxInput.value;
       this.maxInput.min = this.minInput.value;
-      this.maxInput.max = orders.at(-1).date.toISOString().slice(0, -14);
 
-      Plotly.deleteTraces(this.plotContent, 0);
-      Plotly.addTraces(this.plotContent, {
-        x: orders.slice(this.minI, this.maxI + 1).map(o => o.date.toLocaleString('ru').slice(0, -10)),
-        y: orders.slice(this.minI, this.maxI + 1).map(o => o.n),
-        mode: 'lines+markers',
-        name: 'test1',
-        line: { color: this.theme },
-      });
       this.orders = orders;
+      this.editTraces();
     },
     closePopup() {
       document.querySelector('.plot').classList.remove('_open');
@@ -95,28 +99,32 @@ export default {
     minChange(e) {
       this.maxInput.min = e.target.value;
       const date = new Date(e.target.value);
-      for (let i = 0; i <= this.maxI; i++)
+      for (let i = 0; i < this.orders.length; i++) {
         if (this.orders[i].date >= date) {
-            this.minI = i;
-            break;
+          this.minI = i;
+          break;
         }
+      }
+      console.log('min', this.minI, this.maxI);
       this.editTraces();
     },
     maxChange(e) {
       this.minInput.max = e.target.value;
       const date = new Date(e.target.value);
-      for (let i = this.orders.length - 1; i >= this.minI; i--)
+      for (let i = this.orders.length - 1; i >= 0; i--) {
         if (this.orders[i].date <= date) {
-            this.maxI = i;
-            break;
+          this.maxI = i + 1;
+          break;
         }
+      }
+      console.log('max', this.minI, this.maxI);
       this.editTraces();
     },
     editTraces() {
       Plotly.deleteTraces(this.plotContent, 0);
       Plotly.addTraces(this.plotContent, {
-        x: this.orders.slice(this.minI, this.maxI + 1).map(o => o.date.toLocaleString('ru').slice(0, -10)),
-        y: this.orders.slice(this.minI, this.maxI + 1).map(o => o.n),
+        x: this.orders.slice(this.minI, this.maxI).map((o) => o.date.toLocaleString('ru').slice(0, -10)),
+        y: this.orders.slice(this.minI, this.maxI).map((o) => o.n),
         mode: 'lines+markers',
         name: 'test1',
         line: { color: this.theme },
@@ -166,6 +174,14 @@ export default {
     border-radius: 10px 10px 0 0;
     color: #fff;
     background-color: v-bind(theme);
+    &::-webkit-datetime-edit-day-field,
+    &::-webkit-datetime-edit-month-field,
+    &::-webkit-datetime-edit-year-field {
+      color: #fff;
+    }
+    &:selection {
+      background-color: transparent;
+    }
   }
 }
 </style>

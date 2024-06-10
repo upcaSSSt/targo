@@ -1,5 +1,8 @@
 <template>
-  <div class="add">
+  <div
+    
+    class="add"
+  >
     <button @click="showForm">
       +
     </button>
@@ -8,6 +11,7 @@
 
 <script>
 import { inject } from 'vue';
+
 export default {
   name: 'BtnAdd',
   setup() {
