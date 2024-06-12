@@ -9,6 +9,7 @@
         type="file"
         accept="image/*"
         name="img"
+        @change="addEditedImg"
       >
     </label>
   </div>
@@ -16,20 +17,21 @@
     class="card__name"
     name="name"
     :value="name"
-    @blur="addEdited"
+    @blur="addEdited($event, $event.target.value)"
   >
   <input
     class="card__price"
     name="price"
     :value="price"
-    @blur="addEdited"
+    @blur="addEdited($event, +$event.target.value)"
   >
-  <input
+  <textarea
     class="card__description"
     name="description"
     :value="description"
-    @blur="addEdited"
+    @blur="addEdited($event, $event.target.value)"
   >
+  </textarea>
   <div class="card__buttons">
     <button
       class="card__button btn_red"
@@ -44,10 +46,10 @@
 import { inject, getCurrentInstance } from 'vue';
 
 export default {
-  name: 'TargoHeader',
+  name: 'ProductEdit',
   props: {
     id: {
-      type: Number,
+      type: String,
       require: true,
     },
     imgName: {
@@ -72,42 +74,61 @@ export default {
     },
   },
   setup() {
+    const showAdminBtns = inject('showAdminBtns');
     const edits = inject('edits');
     const products = inject('products');
+    const editedProducts = inject('editedProducts');
     const basket = inject('basket');
-    return { edits, products, basket };
+    return { showAdminBtns, edits, editedProducts, products, basket };
   },
   methods: {
     async addEditedImg(e) {
-      if (this.edits[this.id]) {
-        if (this.edits[this.id].imgName)
-          await fetch('http://localhost:3000/delFile', {
-            method: 'post',
-            body: JSON.stringify({ name: this.edits[this.id].imgName }),
-          });
-        this.edits[this.id].fields.imgName = e.target.files[0].name;
-      }
-      else
-        this.edits[this.id] = { id: this.id, fields: { imgName: e.target.files[0].name } };
+      const fd = new FormData();
+      fd.append('img', e.target.files[0]);
+      await fetch('http://localhost:3000/addFile', {
+        method: 'post',
+        body: fd,
+      });
+
+      setTimeout(async () => {
+        this.$emit('update:imgName', e.target.files[0].name);
+
+        if (this.edits[this.id]) {
+          if (this.edits[this.id].imgName)
+            await fetch('http://localhost:3000/delFile', {
+              method: 'post',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ name: this.edits[this.id].imgName }),
+            });
+          this.edits[this.id].imgName = e.target.files[0].name;
+        }
+        else
+          this.edits[this.id] = { imgName: e.target.files[0].name };
+      }, 2000);
+      this.showAdminBtns = true;
     },
-    addEdited(e) {
-      const nn = this.edits.find(ef => ef.id === this.id);
-      if (nn)
-        nn.fields[e.target.name] = e.target.value;
+    addEdited(e, value) {
+      if (this.edits[this.id])
+        this.edits[this.id][e.target.name] = value;
       else
-        this.edits.push({ id: this.id, fields: { [e.target.name]: e.target.value } });
+        this.edits[this.id] = { [e.target.name]: value };
+      this.$emit(`update:${e.target.name}`, value);
+      this.showAdminBtns = true;
     },
     async del(e) {
       e.stopPropagation();
       if (confirm(`Вы действительно хотите удалить ${this.name}?`)) {
-        const index = this.products.findIndex((p) => p.id === this.id);
-        this.products.splice(index, 1);
+        delete this.products[this.id];
+        delete this.edits[this.id];
+        delete this.editedProducts[this.id];
         const res = await fetch('http://localhost:3000/del', {
           method: 'post',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ index }),
+          body: JSON.stringify({ id: this.id }),
         });
       }
     },

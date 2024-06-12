@@ -11,24 +11,15 @@
 import { inject, getCurrentInstance } from 'vue';
 
 export default {
-  name: 'TargoHeader',
-  props: {
-    orders: {
-      type: Array,
-      default: null,
-      require: true,
-    },
-  },
+  name: 'ProductCard',
   emits: ['cardClick'],
   setup() {
     const theme = inject('theme');
     return { theme };
   },
-  mounted() {
-  },
   methods: {
     showPlot() {
-      this.$emit('cardClick', this.orders);
+      this.$emit('cardClick');
     },
   },
 };

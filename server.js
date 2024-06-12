@@ -52,35 +52,38 @@ app.post('/delFile', (req, res) => {
 });
 
 app.post('/add', upload.single('img'), (req, res) => {
-  const { name, price, description } = req.body;
-  products.push({
-    imgName: req.file.filename, name, price: +price, description, orders: [{ date: new Date().toISOString().slice(0, -14), n: 1 }],
-  });
+  products[req.body.id] = {
+    imgName: req.file.filename,
+    name: req.body.name,
+    price: +req.body.price,
+    description: req.body.description,
+    orders: [],
+  };
   writeFileSync('db.json', JSON.stringify(products));
   res.send('Добавил');
 });
 
 app.post('/edit', upload.single('img'), (req, res) => {
-  for (const index of req.body.edits)
-    for (const field of req.body.edits[index])
-      products[index][field] = req.body.edits[index][field];
+  for (const id in req.body.edits)
+    for (const field in req.body.edits[id])
+      products[id][field] = req.body.edits[id][field];
   writeFileSync('db.json', JSON.stringify(products));
   res.send('Редактировал');
 });
 
 app.post('/del', (req, res) => {
-  unlinkSync(join('src', 'assets', products[req.body.index].imgName));
-  products.splice(req.body.index, 1);
+  unlinkSync(join('src', 'assets', products[req.body.id].imgName));
+  delete products[req.body.id];
   writeFileSync('db.json', JSON.stringify(products));
   res.send('Удалил');
 });
 
 app.post('/order', (req, res) => {
-  for (const newOrder of req.body.newOrders)
-    if (products[newOrder.index].orders.at(-1).date === req.body.now)
-      products[newOrder.index].orders.at(-1).n = newOrder.n;
+  for (const id in req.body.newOrders)
+    if (products[id].orders.length < 1 || products[id].orders.at(-1).date < req.body.now)
+      products[id].orders.push({ date: req.body.now, n: req.body.newOrders[id] });
     else
-      products[newOrder.index].orders.push({ date: req.body.now, n: newOrder.n });
+      products[id].orders.at(-1).n = req.body.newOrders[id];
 
   writeFileSync('db.json', JSON.stringify(products));
   res.send('Заказал');

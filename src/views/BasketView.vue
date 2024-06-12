@@ -2,8 +2,8 @@
   <section class="basket">
     <div class="basket__container">
       <BasketCard
-        v-for="order in basket"
-        :key="order.id"
+        v-for="(order, id) in basket"
+        :key="id"
         :imgName="order.imgName"
         :name="order.name"
         :price="order.price"
@@ -40,7 +40,7 @@ import { inject } from 'vue';
 import BasketCard from '../components/BasketCard.vue';
 
 export default {
-  name: 'TargoFooter',
+  name: 'BasketView',
   components: {
     BasketCard,
   },
@@ -54,22 +54,21 @@ export default {
   methods: {
     total() {
       let sum = 0;
-      for (const order of this.basket)
-        sum += order.price * order.n;
+      for (const id in this.basket)
+        sum += this.basket[id].price * this.basket[id].n;
       return sum;
     },
     async order() {
-      const newOrders = [];
+      const newOrders = {};
       const now = new Date();
       now.setHours(now.getTimezoneOffset() / -60, 0, 0, 0);
 
-      for (const order of this.basket) {
-        const index = this.products.findIndex(p => p.id === order.id);
-        if (this.products[index].orders.length < 1 || this.products[index].orders.at(-1).date < now)
-          this.products[index].orders.push({ date: now, n: order.n });
+      for (const id in this.basket) {
+        if (this.products[id].orders.length < 1 || this.products[id].orders.at(-1).date < now)
+          this.products[id].orders.push({ date: now, n: this.basket[id].n });
         else
-          this.products[index].orders.at(-1).n += order.n;
-        newOrders.push({ index, n: this.products[index].orders.at(-1).n });
+          this.products[id].orders.at(-1).n += this.basket[id].n;
+        newOrders[id] = this.products[id].orders.at(-1).n;
       }
       this.del();
 
@@ -83,7 +82,7 @@ export default {
     },
     del() {
       this.counter = 0;
-      this.basket.length = 0;
+      this.basket = {};
     },
   },
 };

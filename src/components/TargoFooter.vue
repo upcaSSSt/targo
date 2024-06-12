@@ -1,9 +1,9 @@
 <template>
-  <section class="footer">
+  <footer class="footer">
     <div class="footer__container">
       Все права защищены © {{ new Date().getFullYear() }}
     </div>
-  </section>
+  </footer>
 </template>
 
 <script>

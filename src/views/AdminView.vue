@@ -5,8 +5,6 @@
       <ProductCard
         v-for="(product, id) in editedProducts"
         :key="id"
-        :orders="product.orders"
-        @card-click=""
       >
         <ProductEdit
           :id="id"
@@ -19,23 +17,25 @@
     </div>
   </section>
   <section class="buttons">
-    <div
-      v-show="showAdminBtns"
-      class="buttons__container"
-    >
-      <button
-        class="buttons__save btn"
-        @click="save"
+    <Transition>
+      <div
+        v-show="showAdminBtns"
+        class="buttons__container"
       >
-        Сохранить
-      </button>
-      <button
-        class="buttons__cancel btn btn_red"
-        @click="cancel"
-      >
-        Отмена
-      </button>
-    </div>
+        <button
+          class="buttons__save btn"
+          @click="save"
+        >
+          Сохранить
+        </button>
+        <button
+          class="buttons__cancel btn btn_red"
+          @click="cancel"
+        >
+          Отмена
+        </button>
+      </div>
+    </Transition>
   </section>
 </template>
 
@@ -47,7 +47,7 @@ import ProductCard from '../components/ProductCard.vue';
 import ProductEdit from '../components/ProductEdit.vue';
 
 export default {
-  name: 'HomeView',
+  name: 'AdminView',
   components: {
     FormAdd,
     OrdersPlot,
@@ -57,33 +57,45 @@ export default {
   setup() {
     const showAdminBtns = ref(false);
     const edits = ref({});
+    provide('showAdminBtns', showAdminBtns);
     provide('edits', edits);
 
     const theme = inject('theme');
     const products = inject('products');
     const editedProducts = inject('editedProducts');
-    return { edits, theme, products, editedProducts };
+    return { showAdminBtns, edits, theme, products, editedProducts };
   },
   methods: {
     async save() {
       this.showAdminBtns = false;
-      for (const edit of this.edits) {
-        const index = this.products.findIndex(p => p.id === edit.id);
-        for (const field in edit.fields)
-          this.products[index][field] = edit.fields[field];
+      for (const id in this.edits) {
+        for (const field in this.edits[id])
+          this.products[id][field] = this.edits[id][field];
       }
       await fetch('http://localhost:3000/edit', {
         method: 'post',
-        body: fd,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ edits: this.edits }),
       });
     },
-    cancel() {
+    async cancel() {
       this.showAdminBtns = false;
 
-      for (const id of this.edits) {
-        const product = this.products.find(p => p.id === +id);
-        for (const field of this.edits)
-          this.editedProducts[id][field] = product[field];
+      for (const id in this.edits) {
+        const oldImgName = this.editedProducts[id].imgName;
+        
+        for (const field in this.edits[id])
+          this.editedProducts[id][field] = this.products[id][field];
+        if (this.edits[id].imgName)
+          await fetch('http://localhost:3000/delFile', {
+            method: 'post',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ name: this.edits[id].imgName }),
+          });
       }
 
       this.edits = {};

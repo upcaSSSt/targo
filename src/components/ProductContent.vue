@@ -28,10 +28,10 @@
 import { inject, getCurrentInstance } from 'vue';
 
 export default {
-  name: 'TargoHeader',
+  name: 'ProductContent',
   props: {
     id: {
-      type: Number,
+      type: String,
       require: true,
     },
     imgName: {
@@ -66,11 +66,10 @@ export default {
       e.stopPropagation();
 
       this.counter += 1;
-      const order = this.basket.find(b => b.id === this.id);
-      if (order)
-        order.n += 1;
+      if (this.basket[this.id])
+        this.basket[this.id].n += 1;
       else
-        this.basket.push({ imgName: this.imgName, name: this.name, price: this.price, n: 1, id: this.id });
+        this.basket[this.id] = { imgName: this.imgName, name: this.name, price: this.price, n: 1 };
     },
   },
 };

@@ -30,6 +30,7 @@ button,
 textarea {
 	font-family: $fontFamily;
 	font-size: inherit;
+	resize: none;
 }
 button {
 	cursor: pointer;
@@ -38,6 +39,10 @@ button {
 }
 input:focus {
 	outline: none;
+}
+input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0; 
 }
 a {
 	color: inherit;

@@ -11,6 +11,7 @@
         <div class="plot__items">
           <div class="plot__item">
             <input
+              ref="min"
               class="plot__input plot__input_min"
               type="date"
               @change="minChange"
@@ -18,13 +19,25 @@
           </div>
           <div class="plot__item">
             <input
+              ref="max"
               class="plot__input plot__input_max"
               type="date"
               @change="maxChange"
             >
           </div>
         </div>
-        <div class="plot__content" />
+        <div class="plot__content">
+          <div
+            v-show="showEmpty"
+            class="plot__empty"
+          >
+              Нет заказов
+          </div>
+          <div
+            ref="plot"
+            class="plot__plot"
+          />
+        </div>
       </div>
     </div>
   </section>
@@ -43,19 +56,13 @@ export default {
   },
   data() {
     return {
+      showEmpty: false,
       minI: 0,
       maxI: 0,
       orders: [],
-      plotContent: null,
-      minInput: null,
-      maxInput: null,
     };
   },
   mounted() {
-    this.plotContent = document.querySelector('.plot__content');
-    this.minInput = document.querySelector('.plot__input_min');
-    this.maxInput = document.querySelector('.plot__input_max');
-
     const layout = {
       title: {
         text: 'Количество заказов',
@@ -65,7 +72,7 @@ export default {
       yaxis: { title: { text: 'Количество', font: { color: '#000' } }, dtick: 1, fixedrange: true },
     };
 
-    Plotly.newPlot(this.plotContent, [{}], layout, { displayModeBar: false, responsive: true });
+    Plotly.newPlot(this.$refs.plot, [{}], layout, { displayModeBar: false, responsive: true });
   },
   methods: {
     cardClick(orders) {
@@ -73,21 +80,23 @@ export default {
       this.maxI = orders.length;
 
       if (orders.length > 0) {
-        this.minInput.value = orders[0].date.toISOString().slice(0, -14);
-        this.maxInput.value = orders.at(-1).date.toISOString().slice(0, -14);
-        this.minInput.min = orders[0].date.toISOString().slice(0, -14);
-        this.maxInput.max = orders.at(-1).date.toISOString().slice(0, -14);
+        this.showEmpty = false;
+        this.$refs.min.value = orders[0].date.toISOString().slice(0, -14);
+        this.$refs.max.value = orders.at(-1).date.toISOString().slice(0, -14);
+        this.$refs.min.min = orders[0].date.toISOString().slice(0, -14);
+        this.$refs.max.max = orders.at(-1).date.toISOString().slice(0, -14);
       }
       else {
+        this.showEmpty = true;
         const now = new Date();
         now.setHours(now.getTimezoneOffset() / -60, 0, 0, 0);
-        this.minInput.value = now.toISOString().slice(0, -14);
-        this.maxInput.value = now.toISOString().slice(0, -14);
-        this.minInput.min = now.toISOString().slice(0, -14);
-        this.maxInput.max = now.toISOString().slice(0, -14);
+        this.$refs.min.value = now.toISOString().slice(0, -14);
+        this.$refs.max.value = now.toISOString().slice(0, -14);
+        this.$refs.min.min = now.toISOString().slice(0, -14);
+        this.$refs.max.max = now.toISOString().slice(0, -14);
       }
-      this.minInput.max = this.maxInput.value;
-      this.maxInput.min = this.minInput.value;
+      this.$refs.min.max = this.$refs.max.value;
+      this.$refs.max.min = this.$refs.min.value;
 
       this.orders = orders;
       this.editTraces();
@@ -97,7 +106,7 @@ export default {
       document.body.classList.remove('_lock');
     },
     minChange(e) {
-      this.maxInput.min = e.target.value;
+      this.$refs.max.min = e.target.value;
       const date = new Date(e.target.value);
       for (let i = 0; i < this.orders.length; i++) {
         if (this.orders[i].date >= date) {
@@ -105,11 +114,10 @@ export default {
           break;
         }
       }
-      console.log('min', this.minI, this.maxI);
       this.editTraces();
     },
     maxChange(e) {
-      this.minInput.max = e.target.value;
+      this.$refs.min.max = e.target.value;
       const date = new Date(e.target.value);
       for (let i = this.orders.length - 1; i >= 0; i--) {
         if (this.orders[i].date <= date) {
@@ -117,12 +125,11 @@ export default {
           break;
         }
       }
-      console.log('max', this.minI, this.maxI);
       this.editTraces();
     },
     editTraces() {
-      Plotly.deleteTraces(this.plotContent, 0);
-      Plotly.addTraces(this.plotContent, {
+      Plotly.deleteTraces(this.$refs.plot, 0);
+      Plotly.addTraces(this.$refs.plot, {
         x: this.orders.slice(this.minI, this.maxI).map((o) => o.date.toLocaleString('ru').slice(0, -10)),
         y: this.orders.slice(this.minI, this.maxI).map((o) => o.n),
         mode: 'lines+markers',
@@ -182,6 +189,21 @@ export default {
     &:selection {
       background-color: transparent;
     }
+  }
+  &__content {
+    position: relative;
+  }
+  &__empty {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #fff;
   }
 }
 </style>

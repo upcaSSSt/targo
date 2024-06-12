@@ -72,36 +72,42 @@ export default {
     const showAddForm = inject('showAddForm');
     const theme = inject('theme');
     const products = inject('products');
+    const editedProducts = inject('editedProducts');
     const themeAlpha = inject('themeAlpha');
-    return { showAddForm, theme, products, themeAlpha };
+    return { showAddForm, theme, products, editedProducts, themeAlpha };
   },
   methods: {
     async addProduct(e) {
       e.preventDefault();
       const form = document.querySelector('.form-add__add');
       const fd = new FormData(form);
+      
       form.reset();
-
       if (!fd.get('name'))
         fd.set('name', 'Имя отсутствует...');
       if (!fd.get('description'))
         fd.set('description', 'Описание отсутствует...');
+      fd.append('id', new Date().getTime());
 
-      const res = await fetch('http://localhost:3000/add', {
+      await fetch('http://localhost:3000/add', {
         method: 'post',
         body: fd,
       });
-      const now = new Date();
-      now.setHours(now.getTimezoneOffset() / -60, 0, 0, 0);
+      
       setTimeout(() => {
-        this.products.push({
+        this.products[fd.get('id')] = {
           imgName: fd.get('img').name,
           name: fd.get('name'),
           price: +fd.get('price'),
           description: fd.get('description'),
           orders: [],
-          id: new Date().getTime(),
-        });
+        };
+        this.editedProducts[fd.get('id')] = {
+          imgName: fd.get('img').name,
+          name: fd.get('name'),
+          price: +fd.get('price'),
+          description: fd.get('description'),
+        };
       }, 2000);
     },
   },

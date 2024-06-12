@@ -3,13 +3,12 @@
   <section class="products">
     <div class="products__container">
       <ProductCard
-        v-for="product in products"
-        :key="product.id"
-        :orders="product.orders"
-        @card-click="cardClick"
+        v-for="(product, id) in products"
+        :key="id"
+        @card-click="cardClick(product.orders)"
       >
       <ProductContent
-        :id="product.id"
+        :id="id"
         :img-name="product.imgName"
         :name="product.name"
         :price="product.price"

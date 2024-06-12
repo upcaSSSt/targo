@@ -41,7 +41,7 @@
 import { inject, getCurrentInstance } from 'vue';
 
 export default {
-  name: 'TargoHeader',
+  name: 'BasketCard',
   props: {
     imgName: {
       type: String,
@@ -82,10 +82,8 @@ export default {
       this.$emit('update:n', this.n - 1);
       this.counter -= 1;
       
-      if (this.n === 1) {
-        console.log('HERE', this.n);
-        this.basket.splice(this.basket.findIndex(b => b.id === this.key), 1);
-      }
+      if (this.n === 1)
+        delete this.basket[this.key];
     },
   },
 };

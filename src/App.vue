@@ -23,7 +23,7 @@ export default {
     const theme = ref('rgb(245, 245, 220)');
     const products = ref([]);
     const editedProducts = ref({});
-    const basket = ref([]);
+    const basket = ref({});
     const themeAlpha = () => `rgba${theme.value.slice(3, -1)}, 0.5)`;
     const toggleForm = () => showAddForm.value = !showAddForm.value;
 
@@ -35,13 +35,19 @@ export default {
     provide('basket', basket);
     provide('themeAlpha', themeAlpha);
     provide('toggleForm', toggleForm);
-    return { theme, products, themeAlpha };
+    return { theme, products, editedProducts, themeAlpha };
   },
   mounted() {
     fetch('http://localhost:3000/').then((response) => response.json()).then((data) => {
-      for (let i = 0; i < data.length; i++) {
-        data[i].id = i;
-        for (const order of data[i].orders)
+      for (const id in data) {
+        this.editedProducts[id] = {
+          imgName: data[id].imgName,
+          name: data[id].name,
+          price: data[id].price,
+          description: data[id].description,
+        };
+
+        for (const order of data[id].orders)
           order.date = new Date(order.date);
       }
       this.products = data;
@@ -65,6 +71,13 @@ export default {
     padding: 5px;
     cursor: pointer;
     border-radius: 3px;
+}
+
+.v-enter-active, .v-leave-active {
+  transition: opacity 0.5s ease;
+}
+.v-enter-from, .v-leave-to {
+  opacity: 0;
 }
 
 .btn {
