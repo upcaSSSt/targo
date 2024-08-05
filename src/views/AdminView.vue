@@ -57,20 +57,51 @@ export default {
   setup() {
     const showAdminBtns = ref(false);
     const edits = ref({});
-    provide('showAdminBtns', showAdminBtns);
-    provide('edits', edits);
+    const editedProducts = ref({});
 
     const theme = inject('theme');
     const products = inject('products');
-    const editedProducts = inject('editedProducts');
+
+    for (const id in products.value)
+      editedProducts.value[id] = {
+        imgName: products.value[id].imgName,
+        name: products.value[id].name,
+        price: products.value[id].price,
+        description: products.value[id].description,
+      };
+
+    provide('showAdminBtns', showAdminBtns);
+    provide('edits', edits);
+    provide('editedProducts', editedProducts);
     return { showAdminBtns, edits, theme, products, editedProducts };
+  },
+  async beforeRouteLeave() {
+    for (const id in this.edits)
+      if (this.edits[id].imgName)
+        await fetch('http://localhost:3000/delFile', {
+          method: 'post',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ name: this.edits[id].imgName }),
+        });
   },
   methods: {
     async save() {
       this.showAdminBtns = false;
       for (const id in this.edits) {
+        const oldImgName = this.products[id].imgName;
+
         for (const field in this.edits[id])
           this.products[id][field] = this.edits[id][field];
+        if (this.edits[id].imgName)
+          await fetch('http://localhost:3000/delFile', {
+            method: 'post',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ name: oldImgName }),
+          });
       }
       await fetch('http://localhost:3000/edit', {
         method: 'post',
@@ -79,15 +110,16 @@ export default {
         },
         body: JSON.stringify({ edits: this.edits }),
       });
+
+      this.edits = {};
     },
     async cancel() {
       this.showAdminBtns = false;
 
       for (const id in this.edits) {
-        const oldImgName = this.editedProducts[id].imgName;
-        
         for (const field in this.edits[id])
           this.editedProducts[id][field] = this.products[id][field];
+
         if (this.edits[id].imgName)
           await fetch('http://localhost:3000/delFile', {
             method: 'post',

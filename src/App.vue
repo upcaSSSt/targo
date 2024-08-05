@@ -21,8 +21,7 @@ export default {
     const counter = ref(0);
     const showAddForm = ref(false);
     const theme = ref('rgb(245, 245, 220)');
-    const products = ref([]);
-    const editedProducts = ref({});
+    const products = ref({});
     const basket = ref({});
     const themeAlpha = () => `rgba${theme.value.slice(3, -1)}, 0.5)`;
     const toggleForm = () => showAddForm.value = !showAddForm.value;
@@ -31,25 +30,17 @@ export default {
     provide('showAddForm', showAddForm);
     provide('theme', theme);
     provide('products', products);
-    provide('editedProducts', editedProducts);
     provide('basket', basket);
     provide('themeAlpha', themeAlpha);
     provide('toggleForm', toggleForm);
-    return { theme, products, editedProducts, themeAlpha };
+    return { theme, products, themeAlpha };
   },
   mounted() {
     fetch('http://localhost:3000/').then((response) => response.json()).then((data) => {
-      for (const id in data) {
-        this.editedProducts[id] = {
-          imgName: data[id].imgName,
-          name: data[id].name,
-          price: data[id].price,
-          description: data[id].description,
-        };
-
+      for (const id in data)
         for (const order of data[id].orders)
           order.date = new Date(order.date);
-      }
+
       this.products = data;
     });
   },
@@ -57,10 +48,8 @@ export default {
 </script>
 
 <style lang="scss">
-@import "./scss/style.scss";
 @import "./scss/null.scss";
-@import "./scss/mixins.scss";
-@import url("https://fonts.googleapis.com/css?family=Montserrat:400,500,600,700&display=swap");
+@import "./scss/style.scss";
 
 .svg-container, .main-svg {
   width: 100% !important;

@@ -29,6 +29,7 @@
             type="text"
             name="name"
             placeholder="Имя отсутствует..."
+            autocomplete="off"
           >
         </label>
       </div>
